@@ -62,6 +62,9 @@
     <ClInclude Include="src\ex_1_4.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ex_1_7.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader_1_1.frag">
