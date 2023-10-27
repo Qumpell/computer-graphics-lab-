@@ -34,7 +34,8 @@ float hues[] = {
 GLuint program;
 Core::Shader_Loader shaderLoader;
 
-unsigned int VAO;
+//unsigned int VAO;
+GLuint VAO, VBO,VBO_hues, EBO;
 
 void renderScene(GLFWwindow* window)
 {
@@ -47,8 +48,8 @@ void renderScene(GLFWwindow* window)
 	// (dodatkowe) Jedna krawędź przechodzi przez wszystkie odcienie zamiast z czerwonego do magenty. Co to powoduje? W jaki sposób byś to naprawił?
 
 	glUseProgram(program);
-
-
+	glBindVertexArray(VAO);
+	glDrawElements(GL_LINE_STRIP, 8, GL_UNSIGNED_INT, 0);
 
 
 	glUseProgram(0);
@@ -66,6 +67,38 @@ void init(GLFWwindow* window)
 	glEnable(GL_DEPTH_TEST);
 	program = shaderLoader.CreateProgram("shaders/shader_2_1b.vert", "shaders/shader_2_1b.frag");
 
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &VBO_hues);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+
+
+
+	GLuint indexVertexPosition = glGetAttribLocation(program, "vertexPosition");
+	glEnableVertexAttribArray(indexVertexPosition);
+
+	
+	glVertexAttribPointer(indexVertexPosition, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_hues);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(hues), hues, GL_STATIC_DRAW);
+	GLuint indexVertexHue = glGetAttribLocation(program, "vertexHue");
+	glEnableVertexAttribArray(indexVertexHue);
+	glVertexAttribPointer(indexVertexHue, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	unsigned int indices[] = { 0, 4, 1, 5, 2, 6, 3, 0 }; // Indeksy dla GL_LINE_STRIP
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
 }
 
 void shutdown(GLFWwindow* window)

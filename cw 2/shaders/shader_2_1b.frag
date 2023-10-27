@@ -1,7 +1,7 @@
 #version 430 core
 out vec4 fragColor;
 
-in float hue;
+flat in float hue;
 out vec4 out_color;
 
 vec3 hsv2rgb(vec3 c)

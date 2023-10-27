@@ -3,7 +3,7 @@
 layout(location = 0) in vec4 vertexPosition;
 layout(location = 1) in float vertexHue;
 
-out float hue;
+flat out float hue;
 void main()
 {
 	hue = vertexHue;

@@ -23,22 +23,22 @@ void main()
 	// out_color = color / time;
 
 	//paski na prostopadloscianie
-	float stripeGap = 1.0f;
-	float stripeCount = 0.8f;
-	float stripeWidth = 0.5f;
-	float stripeCoordinate = abs(sin(time + pos_local.x * (stripeCount + stripeGap)));
+	float stripeGap = 0.1;
+	float stripeCount = 5.0;
+	float stripeWidth = 0.1;
+	float stripeCoordinate = abs(sin(time + pos_local.z * (stripeCount + stripeGap)));
 	stripeCoordinate /= stripeWidth;
 
 
 
 	//float stripeCoordinate = abs(sin(time + pos_local.x));
 	 // Kolor paska
-    vec3 stripeColor = vec3(stripeCoordinate, 0.3, 0.3);
-
+    vec3 stripeColor = vec3(stripeCoordinate, 0.1, 0.8);
+	//vec3 stripeColor = vec3(stripeCoordinate, stripeCoordinate, stripeCoordinate);
 	    // Ustawianie koloru dla wszystkich pasków
-    for (int i = 0; i < int(stripeCount); ++i) {
-        stripeColor = mix(stripeColor, vec3(0.3, 0.3, 0.3), smoothstep(float(i) / stripeCount, (float(i) + 1.0) / stripeCount, stripeCoordinate));
-    }
+    //for (int i = 0; i < int(stripeCount); ++i) {
+      //  stripeColor = mix(stripeColor, vec3(0.3, 0.3, 0.3), smoothstep(float(i) / stripeCount, (float(i) + 1.0) / stripeCount, stripeCoordinate));
+    //}
 
     // Przypisanie koloru paska do wyjœciowej zmiennej FragColor
     out_color = vec4(stripeColor, 1.0) * color;
