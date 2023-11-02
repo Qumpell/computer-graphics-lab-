@@ -32,23 +32,30 @@ float aspectRatio = 1.f;
 
 glm::mat4 createCameraMatrix(){
 
+	glm::vec3 vector = glm::vec3(0.f, 1.f, 0.f);
+	glm::vec3 crossProduct = glm::cross(cameraDir, vector);
+	glm::vec3 cameraSide = glm::normalize(crossProduct);
+
+	crossProduct = glm::cross(cameraSide, cameraDir);
+	glm::vec3 cameraUp = glm::normalize(crossProduct);
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	glm::mat4 cameraRotationMatrix = glm::mat4({
-		1.,0.,0.,0.,
-		0.,1.,0.,0.,
-		0.,0.,1.,0.,
-		0.,0.,0.,1.,
+		cameraSide.x, cameraSide.y, cameraSide.z,0.,
+		cameraUp.x, cameraUp.y, cameraUp.z, 0.,
+		-cameraDir.x, -cameraDir.y, -cameraDir.y,0.,
+		0., 0., 0., 1.,
 		});
 	cameraRotationMatrix = glm::transpose(cameraRotationMatrix);
 
-	glm::mat4 cameraMatrix;
+	glm::mat4 cameraMatrix = cameraRotationMatrix;
 
 	return cameraMatrix;
 }
 
-glm::mat4 createPerspectiveMatrix(float aspectRatio){
+glm::mat4 createPerspectiveMatrix(float fov, float aspectRatio){
 
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -56,11 +63,12 @@ glm::mat4 createPerspectiveMatrix(float aspectRatio){
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	float n = 0.2f;
 	float f = 0.3f;
-	float fov = 90.0f;
-	float S = 1.0f / tan(fov * (M_PI / 360.0f));
+
+	float S = 1.0f / tan((fov/2) * M_PI/180);
+	printf("%f\n", aspectRatio);
 	glm::mat4 perspectiveMatrix = glm::mat4({
-		S / aspectRatio,0.,0.,0.,
-		0.,S,0.,0.,
+		S,0.,0.,0.,
+		0.,S * aspectRatio,0.,0.,
 		0.,0.,(n+f)/(n-f), (2*n*f)/(n - f),
 		0.,0.,-1.,0.,
 		});
@@ -78,10 +86,10 @@ void renderScene(GLFWwindow* window)
 	glm::mat4 transformation;
 
 	glUseProgram(program_box);
-
+	float fov = 10.0f;
 
 	glBindVertexArray(VAO);
-	transformation = createPerspectiveMatrix(aspectRatio);
+	transformation = createPerspectiveMatrix(fov ,aspectRatio) * createCameraMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(program_box, "transformation"), 1, GL_FALSE, (float*)&transformation);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
@@ -91,7 +99,10 @@ void renderScene(GLFWwindow* window)
 }
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	aspectRatio = width / float(height);
+	aspectRatio = (float)width / float(height);
+
+	//bonus task
+	//aspectRatio = (float)height / float(width);
 	glViewport(0, 0, width, height);
 }
 void loadModelToContext(std::string path, Core::RenderContext& context)
