@@ -23,7 +23,7 @@ Core::Shader_Loader shaderLoader;
 Core::RenderContext shipContext;
 Core::RenderContext sphereContext;
 
-glm::vec3 cameraPos = glm::vec3(-1.f, 0, 0);
+glm::vec3 cameraPos = glm::vec3(-1.0f, 0.0f, 0.0f);
 glm::vec3 cameraDir = glm::vec3(1.f, 0.f, 0.f);
 GLuint VAO,VBO;
 
@@ -32,24 +32,26 @@ float aspectRatio = 1.f;
 
 glm::mat4 createCameraMatrix(){
 
-	glm::vec3 vector = glm::vec3(0.f, 1.f, 0.f);
-	glm::vec3 crossProduct = glm::cross(cameraDir, vector);
-	glm::vec3 cameraSide = glm::normalize(crossProduct);
-
-	crossProduct = glm::cross(cameraSide, cameraDir);
-	glm::vec3 cameraUp = glm::normalize(crossProduct);
-
+	glm::vec3 cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f, 1.f, 0.f)));
+	glm::vec3 cameraUp = glm::normalize(glm::cross(cameraSide, cameraDir));
+	
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	glm::mat4 cameraRotationMatrix = glm::mat4({
-		cameraSide.x, cameraSide.y, cameraSide.z,0.,
+		cameraSide.x, cameraSide.y, cameraSide.z, 0.,
 		cameraUp.x, cameraUp.y, cameraUp.z, 0.,
-		-cameraDir.x, -cameraDir.y, -cameraDir.y,0.,
+		-cameraDir.x, -cameraDir.y, -cameraDir.z,0.,
 		0., 0., 0., 1.,
 		});
-	cameraRotationMatrix = glm::transpose(cameraRotationMatrix);
-
+	glm::mat4 translationMatrix = glm::mat4({
+		1.,0.,0.,-cameraPos.x,
+		0.,1.,0.,-cameraPos.y,
+		0.,0.,1.,-cameraPos.z,
+		0.,0.,0.,1.,
+	});
+	
+	cameraRotationMatrix = glm::transpose(cameraRotationMatrix * glm::translate(cameraRotationMatrix, -cameraPos));
 	glm::mat4 cameraMatrix = cameraRotationMatrix;
 
 	return cameraMatrix;
@@ -61,11 +63,11 @@ glm::mat4 createPerspectiveMatrix(float fov, float aspectRatio){
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	float n = 0.2f;
-	float f = 0.3f;
+	float n = 0.1f;
+	float f = 10.0f;
 
-	float S = 1.0f / tan((fov/2) * M_PI/180);
-	printf("%f\n", aspectRatio);
+	float S = 1.0f / tan((fov/2.0f) * M_PI/180.0f);
+	//printf("%f\n", aspectRatio);
 	glm::mat4 perspectiveMatrix = glm::mat4({
 		S,0.,0.,0.,
 		0.,S * aspectRatio,0.,0.,
@@ -86,10 +88,11 @@ void renderScene(GLFWwindow* window)
 	glm::mat4 transformation;
 
 	glUseProgram(program_box);
-	float fov = 10.0f;
+	
+	float fov = 90.0f;
 
 	glBindVertexArray(VAO);
-	transformation = createPerspectiveMatrix(fov ,aspectRatio) * createCameraMatrix();
+	transformation = createCameraMatrix() * createPerspectiveMatrix(fov, aspectRatio);
 	glUniformMatrix4fv(glGetUniformLocation(program_box, "transformation"), 1, GL_FALSE, (float*)&transformation);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
@@ -99,7 +102,7 @@ void renderScene(GLFWwindow* window)
 }
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	aspectRatio = (float)width / float(height);
+	aspectRatio = float(width) / float(height);
 
 	//bonus task
 	//aspectRatio = (float)height / float(width);
@@ -120,7 +123,7 @@ void loadModelToContext(std::string path, Core::RenderContext& context)
 void init(GLFWwindow* window)
 {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+		
 	glEnable(GL_DEPTH_TEST);
 	program = shaderLoader.CreateProgram("shaders/shader_3_1.vert", "shaders/shader_3_1.frag");
 	program_box = shaderLoader.CreateProgram("shaders/shader_2_1.vert", "shaders/shader_2_1.frag");
@@ -153,6 +156,7 @@ void shutdown(GLFWwindow* window)
 void processInput(GLFWwindow* window)
 {
 	glm::vec3 cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f,1.f,0.f)));
+	//cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f, 1.f, 0.f)));
 	float angleSpeed = 0.05f;
 	float moveSpeed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
