@@ -67,14 +67,13 @@ ScaffoldingReadMe.txt
 
 # StyleCop
 StyleCopReport.xml
-
+dependencies/
 # Files built by Visual Studio
 *_i.c
 *_p.c
 *_h.h
 *.ilk
 *.meta
-*.obj
 *.iobj
 *.pch
 *.pdb

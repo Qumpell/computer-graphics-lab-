@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "glew.h"
 #include <GLFW/glfw3.h>
 #include "glm.hpp"
@@ -21,13 +21,13 @@ float rotationAngle = 0.0f;
 
 void renderScene(GLFWwindow* window)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
 
-	float time = glfwGetTime();
+    float time = glfwGetTime();
 
     glUseProgram(program);
-    
+
     //glm::mat4 transformation;
     //float y = sin(time) * 0.5;
     //float angle = time * 50.0f;
@@ -41,7 +41,7 @@ void renderScene(GLFWwindow* window)
 
     //glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
     //Core::drawVAOIndexed(quadVAO, 6);
-    
+
     for (const auto& position : quadsPositions) {
         glm::mat4 transformation = glm::rotate(glm::translate(glm::mat4(1.0f), position), glm::radians(rotationAngle), rotationVector);
         glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
@@ -58,7 +58,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
-{   
+{
     //int width, height;
     //glfwGetWindowSize(window, &width, &height);
     //quadsPosition.x = ((2 * xpos) / width) - 1;
@@ -84,8 +84,8 @@ void joystick_callback(int jid, int event) {
 
     if (axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] > 0.5f) {
         float triggerValue = axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER];
-        rotationAngle = 5.0f * triggerValue; 
-        std::cout << "Szybkoœæ obrotu: " << rotationAngle << std::endl;
+        rotationAngle = 5.0f * triggerValue;
+        std::cout << "Szybkoï¿½ï¿½ obrotu: " << rotationAngle << std::endl;
     }
 }
 
@@ -119,7 +119,7 @@ void shutdown(GLFWwindow* window)
 
 //obsluga wejscia
 void processInput(GLFWwindow* window)
-{   
+{
     float speed = 0.01f;
     float rotationSpeed = 5.0f;
 
