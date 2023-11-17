@@ -37,7 +37,7 @@ float aspectRatio = 1.f;
 float lastTime = -1.f;
 float deltaTime = 0.f;
 
-glm::vec3 lightColor = glm::vec3(1.0f,0.5f,0.4f);
+glm::vec3 lightColor = glm::vec3(1.0f,1.0f,1.0f);
 
 void updateDeltaTime(float time) {
 	if (lastTime < 0) {
@@ -92,10 +92,17 @@ void drawObjectColor(Core::RenderContext& context, glm::mat4 modelMatrix, glm::v
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
 	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
+	//Przeslij macierz modelu rysowanego
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	// Przeslij pozycje kamery
 	glUniform3f(glGetUniformLocation(program, "cameraPos"), cameraPos.x, cameraPos.y, cameraPos.z);
 	glUniform3f(glGetUniformLocation(program, "color"), color.x,color.y,color.z);
-	glUniform3f(glGetUniformLocation(program, "lightDir"), 1.0f,1.0f,0);
+
+	// Przeslij wektor kierunkowy światła
+	glm::vec3 lightDirValue = glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f));
+	glUniform3f(glGetUniformLocation(program, "lightPos"), lightDirValue.x, lightDirValue.y, lightDirValue.z);
+	
+	// Przeslij kolor światła
 	glUniform3f(glGetUniformLocation(program, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
 	Core::DrawContext(context);
 

@@ -7,11 +7,11 @@ layout(location = 2) in vec2 vertexTexCoord;
 uniform mat4 transformation;
 uniform mat4 modelMatrix;
 
-out vec3 vecNormal;
-out vec3 vecPosition;
+out vec3 vertNormal;
+out vec3 vertPosition;
 void main()
 {
 	gl_Position = transformation * vec4(vertexPosition, 1.0);
-	vecNormal = (modelMatrix* vec4(vertexNormal,0)).xyz;
-	vecPosition = (modelMatrix* vec4(vertexPosition,1)).xyz;
+	vertNormal = (modelMatrix* vec4(vertexNormal,0)).xyz;
+	vertPosition = (modelMatrix* vec4(vertexPosition,1)).xyz;
 }
