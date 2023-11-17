@@ -38,6 +38,7 @@ float lastTime = -1.f;
 float deltaTime = 0.f;
 
 glm::vec3 lightColor = glm::vec3(1.0f,1.0f,1.0f);
+float exposure = 1.0f;
 
 void updateDeltaTime(float time) {
 	if (lastTime < 0) {
@@ -87,7 +88,9 @@ glm::mat4 createPerspectiveMatrix()
 	return perspectiveMatrix;
 }
 
-void drawObjectColor(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color) {
+void drawObjectColor(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color, GLuint program) {
+
+	glUseProgram(program);
 
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
 	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
@@ -99,11 +102,15 @@ void drawObjectColor(Core::RenderContext& context, glm::mat4 modelMatrix, glm::v
 	glUniform3f(glGetUniformLocation(program, "color"), color.x,color.y,color.z);
 
 	// Przeslij wektor kierunkowy światła
-	glm::vec3 lightDirValue = glm::normalize(glm::vec3(1.0f, -1.0f, 0.0f));
+	//glm::vec3 lightDirValue = glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f));
+	glm::vec3 lightDirValue = glm::vec3(0.0f,0.0f,0.0f);
 	glUniform3f(glGetUniformLocation(program, "lightPos"), lightDirValue.x, lightDirValue.y, lightDirValue.z);
 	
 	// Przeslij kolor światła
-	glUniform3f(glGetUniformLocation(program, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
+	glUniform3f(glGetUniformLocation(program, "lightColor"), lightColor.x*100.0f, lightColor.y*100.0f, lightColor.z*100.0f);
+
+	// Przeslij ekspozycje
+	glUniform1f(glGetUniformLocation(program, "exposure"), exposure);
 	Core::DrawContext(context);
 
 }
@@ -115,15 +122,16 @@ void renderScene(GLFWwindow* window)
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 
-	glUseProgram(program);
+	//glUseProgram(program);
+	//glUseProgram(programSun);
 
-	drawObjectColor(sphereContext,glm::mat4(),glm::vec3(1.0, 1.0, 0.3));
+	drawObjectColor(sphereContext,glm::mat4(),glm::vec3(1.0, 1.0, 0.3), programSun);
 
-	drawObjectColor(sphereContext, glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), glm::vec3(0.2, 0.7, 0.3));
+	drawObjectColor(sphereContext, glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), glm::vec3(0.2, 0.7, 0.3), program);
 
 	drawObjectColor(sphereContext,
 		glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
-		glm::vec3(0.5, 0.5, 0.5));
+		glm::vec3(0.5, 0.5, 0.5), program);
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
@@ -142,7 +150,7 @@ void renderScene(GLFWwindow* window)
 	drawObjectColor(shipContext,
 		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.2f)),
 		glm::vec3(0.3, 0.3, 0.5)
-		);
+		, program);
 
 	glUseProgram(0);
 	glfwSwapBuffers(window);
@@ -171,6 +179,7 @@ void init(GLFWwindow* window)
 
 	glEnable(GL_DEPTH_TEST);
 	program = shaderLoader.CreateProgram("shaders/shader_5_1.vert", "shaders/shader_5_1.frag");
+	programSun = shaderLoader.CreateProgram("shaders/shader_5_sun.vert", "shaders/shader_5_sun.frag");
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
@@ -218,7 +227,17 @@ void processInput(GLFWwindow* window)
 
 	//cameraDir = glm::normalize(-cameraPos);
 
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+	{
+		exposure += 0.01;  // Zwiększ ekspozycję po wciśnięciu klawisza 1
+	}
+	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+	{
+		exposure -= 0.01;  // Zmniejsz ekspozycję po wciśnięciu klawisza 2
+		  // Ogranicz ekspozycję do wartości minimalnej (np. 0.1)
+	}
 }
+
 
 // funkcja jest glowna petla
 void renderLoop(GLFWwindow* window) {
