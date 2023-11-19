@@ -152,6 +152,13 @@ void renderScene(GLFWwindow* window)
 		glm::vec3(0.3, 0.3, 0.5)
 		, program);
 
+	// Przeslij kierunek statku
+	glm::vec3 lightDirValue = glm::vec3(0.0f, 0.0f, 0.0f);
+	glUniform3f(glGetUniformLocation(program, "spotPos"), spaceshipPos.x, spaceshipPos.y, spaceshipPos.z);
+
+	// Przeslij pozycje statku 
+	glUniform3f(glGetUniformLocation(program, "spotDir"), spaceshipDir.x, spaceshipDir.y, spaceshipDir.z);
+
 	glUseProgram(0);
 	glfwSwapBuffers(window);
 }
