@@ -89,6 +89,9 @@
     <ClInclude Include="src\ex_6_1.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader_5_sun.frag">
@@ -109,5 +112,28 @@
     <None Include="shaders\shader_5_1_tex.frag">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\shader_earth.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_earth.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_ship.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_ship.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_proc_tex.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shader_proc_tex.vert">
+      <Filter>Shader Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="grk-cw6.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
