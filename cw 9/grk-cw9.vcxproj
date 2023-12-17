@@ -23,6 +23,7 @@
     <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\ex_9_1.hpp" />
     <ClInclude Include="src\objload.h" />
@@ -41,8 +42,13 @@
     <None Include="shaders\shader_9_1.vert" />
     <None Include="shaders\shader_8_sun.frag" />
     <None Include="shaders\shader_8_sun.vert" />
+    <None Include="shaders\shadow_map.frag" />
+    <None Include="shaders\shadow_map.vert" />
     <None Include="shaders\test.frag" />
     <None Include="shaders\test.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="grk-cw9.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5BACD057-4B83-4CB6-A367-40A10BCE2149}</ProjectGuid>

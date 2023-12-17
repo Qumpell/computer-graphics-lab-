@@ -43,6 +43,7 @@ GLuint program;
 GLuint programSun;
 GLuint programTest;
 GLuint programTex;
+GLuint programDepth;
 
 Core::Shader_Loader shaderLoader;
 
@@ -73,7 +74,7 @@ glm::vec3 spotlightConeDir = glm::vec3(0, 0, 0);
 glm::vec3 spotlightColor = glm::vec3(0.4, 0.4, 0.9)*3;
 float spotlightPhi = 3.14 / 4;
 
-
+glm::mat4 lightVP;
 
 float lastTime = -1.f;
 float deltaTime = 0.f;
@@ -125,7 +126,24 @@ glm::mat4 createPerspectiveMatrix()
 	return perspectiveMatrix;
 }
 
+void drawObjectDepth(Core::RenderContext& context, glm::mat4& viewProjection, glm::mat4& modelMatrix) {
+	
+	glUniformMatrix4fv(glGetUniformLocation(programDepth, "viewProjectionMatrix"), 1, GL_FALSE, (float*)&viewProjection);
+	glUniformMatrix4fv(glGetUniformLocation(programDepth, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(program, "perspectiveMatrix"), 1, GL_FALSE, (float*)&createPerspectiveMatrix());
+
+
+	/*	glm::mat4 lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, 1.0f, 30.0f);
+		glm::mat4 cameraMatrix = glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
+
+		glUniformMatrix4fv(glGetUniformLocation(programDepth, "lightProjectionMatrix"), 1, GL_FALSE, (float*)&lightProjection);
+		glUniformMatrix4fv(glGetUniformLocation(programDepth, "cameraMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);*/
+	// Rysowanie obiektu
+	Core::DrawContext(context);
+}
+
 void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color, float roughness, float metallic) {
+	lightVP = glm::ortho(-10.f, 10.f, -10.f, 10.f, 1.0f, 30.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
 
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
 	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
@@ -151,22 +169,73 @@ void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec
 	glUniform3f(glGetUniformLocation(program, "spotlightPos"), spotlightPos.x, spotlightPos.y, spotlightPos.z);
 	glUniform3f(glGetUniformLocation(program, "spotlightColor"), spotlightColor.x, spotlightColor.y, spotlightColor.z);
 	glUniform1f(glGetUniformLocation(program, "spotlightPhi"), spotlightPhi);
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glUniformMatrix4fv(glGetUniformLocation(program, "LightVP"), 1, GL_FALSE, (float*)&lightVP);
+	
 	Core::DrawContext(context);
+
 
 }
 
 void renderShadowapSun() {
+	//ustawianie przestrzeni rysowania 
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	//bindowanie FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	//czyszczenie mapy głębokości 
+	glClear(GL_DEPTH_BUFFER_BIT);
+	//ustawianie programu
+	glUseProgram(programDepth);
+
 	float time = glfwGetTime();
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 	//uzupelnij o renderowanie glebokosci do tekstury
+	
+	lightVP = glm::ortho(-2.f, 2.f, -1.f, 1.f, 1.f, 30.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
+
+	drawObjectDepth(sphereContext, lightVP, glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)));
+	
+	drawObjectDepth(sphereContext, lightVP,
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)));
+
+	drawObjectDepth(models::bedContext,	lightVP ,glm::mat4());
+	drawObjectDepth(models::chairContext, lightVP, glm::mat4());
+	drawObjectDepth(models::deskContext, lightVP, glm::mat4());
+	drawObjectDepth(models::doorContext, lightVP, glm::mat4());
+	drawObjectDepth(models::drawerContext, lightVP, glm::mat4());
+	drawObjectDepth(models::marbleBustContext, lightVP, glm::mat4());
+	drawObjectDepth(models::materaceContext, lightVP, glm::mat4());
+	drawObjectDepth(models::pencilsContext, lightVP, glm::mat4());
+	drawObjectDepth(models::planeContext, lightVP, glm::mat4());
+	drawObjectDepth(models::roomContext, lightVP, glm::mat4());
+	drawObjectDepth(models::windowContext, lightVP, glm::mat4());
+
+	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
+	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
+	glm::mat4 specshipCameraRotrationMatrix = glm::mat4({
+		spaceshipSide.x,spaceshipSide.y,spaceshipSide.z,0,
+		spaceshipUp.x,spaceshipUp.y,spaceshipUp.z ,0,
+		-spaceshipDir.x,-spaceshipDir.y,-spaceshipDir.z,0,
+		0.,0.,0.,1.,
+		});
 
 
+	//drawObjectColor(shipContext,
+	//	glm::translate(cameraPos + 1.5 * cameraDir + cameraUp * -0.5f) * inveseCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()),
+	//	glm::vec3(0.3, 0.3, 0.5)
+	//	);
+	drawObjectDepth(shipContext, lightVP,
+		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f)));
+
+	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
+	spotlightConeDir = spaceshipDir;
 
 
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, WIDTH, HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void renderScene(GLFWwindow* window)
@@ -232,11 +301,11 @@ void renderScene(GLFWwindow* window)
 
 
 	//test depth buffer
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glUseProgram(programTest);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, depthMap);
-	//Core::DrawContext(models::testContext);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(programTest);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	Core::DrawContext(models::testContext);
 
 	glUseProgram(0);
 	glfwSwapBuffers(window);
@@ -260,7 +329,22 @@ void loadModelToContext(std::string path, Core::RenderContext& context)
 	}
 	context.initFromAssimpMesh(scene->mMeshes[0]);
 }
+void initDepthMap() {
+	glGenFramebuffers(1, &depthMapFBO);
 
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+}
 void init(GLFWwindow* window)
 {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -269,6 +353,7 @@ void init(GLFWwindow* window)
 	program = shaderLoader.CreateProgram("shaders/shader_9_1.vert", "shaders/shader_9_1.frag");
 	programTest = shaderLoader.CreateProgram("shaders/test.vert", "shaders/test.frag");
 	programSun = shaderLoader.CreateProgram("shaders/shader_8_sun.vert", "shaders/shader_8_sun.frag");
+	programDepth = shaderLoader.CreateProgram("shaders/shadow_map.vert", "shaders/shadow_map.frag");
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
@@ -288,6 +373,8 @@ void init(GLFWwindow* window)
 	loadModelToContext("./models/sphere.obj", models::sphereContext);
 	loadModelToContext("./models/window.obj", models::windowContext);
 	loadModelToContext("./models/test.obj", models::testContext);
+
+	initDepthMap();
 
 }
 

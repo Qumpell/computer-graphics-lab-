@@ -30,13 +30,28 @@ in vec3 worldPos;
 
 out vec4 outColor;
 
-
+in vec4 sunSpacePos;
 in vec3 viewDirTS;
 in vec3 lightDirTS;
 in vec3 spotlightDirTS;
 in vec3 sunDirTS;
 
 in vec3 test;
+
+
+float calculateShadow(vec4 lightSpacePos)
+{
+    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    vec3 lightSpacePosNormalized = projCoords * 0.5 + 0.5;
+
+    float closestDepth = texture(depthMap, lightSpacePosNormalized.xy).r; 
+    float currentDepth = lightSpacePosNormalized.z;  
+
+    float bias = 0.01;
+    float shadow = currentDepth < closestDepth + bias  ? 1.0 : 0.0;  
+
+    return shadow;
+}
 
 float DistributionGGX(vec3 normal, vec3 H, float roughness){
     float a      = roughness*roughness;
@@ -126,7 +141,7 @@ void main()
 	ilumination=ilumination+PBRLight(spotlightDir,attenuatedlightColor,normal,viewDir);
 
 	//sun
-	ilumination=ilumination+PBRLight(sunDir,sunColor,normal,viewDir);
+	ilumination=ilumination+PBRLight(sunDir,sunColor*calculateShadow(sunSpacePos),normal,viewDir);
 
     
 	outColor = vec4(vec3(1.0) - exp(-ilumination*exposition),1);
