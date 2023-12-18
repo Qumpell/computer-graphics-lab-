@@ -4,6 +4,7 @@ float AMBIENT = 0.03;
 float PI = 3.14;
 
 uniform sampler2D depthMap;
+uniform sampler2D depthShipMap;
 
 uniform vec3 cameraPos;
 
@@ -30,6 +31,7 @@ in vec3 worldPos;
 
 out vec4 outColor;
 
+in vec4 shipSpacePos;
 in vec4 sunSpacePos;
 in vec3 viewDirTS;
 in vec3 lightDirTS;
@@ -39,7 +41,7 @@ in vec3 sunDirTS;
 in vec3 test;
 
 
-float calculateShadow(vec4 lightSpacePos)
+float calculateShadow(vec4 lightSpacePos, sampler2D depthMap)
 {
     vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
     vec3 lightSpacePosNormalized = projCoords * 0.5 + 0.5;
@@ -141,7 +143,7 @@ void main()
 	ilumination=ilumination+PBRLight(spotlightDir,attenuatedlightColor,normal,viewDir);
 
 	//sun
-	ilumination=ilumination+PBRLight(sunDir,sunColor*calculateShadow(sunSpacePos),normal,viewDir);
+	ilumination=ilumination+PBRLight(sunDir,sunColor*calculateShadow(sunSpacePos, depthMap)*calculateShadow(shipSpacePos, depthShipMap),normal,viewDir);
 
     
 	outColor = vec4(vec3(1.0) - exp(-ilumination*exposition),1);

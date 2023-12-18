@@ -118,6 +118,12 @@
     <None Include="shaders\shadow_map.vert">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="shaders\shadow_ship_map.frag">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="shaders\shadow_ship_map.vert">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="grk-cw9.rc">

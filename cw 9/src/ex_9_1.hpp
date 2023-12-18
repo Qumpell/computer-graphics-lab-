@@ -39,11 +39,15 @@ namespace models {
 GLuint depthMapFBO;
 GLuint depthMap;
 
+GLuint depthMapShipFBO;
+GLuint depthShipMap;
+
 GLuint program;
 GLuint programSun;
 GLuint programTest;
 GLuint programTex;
 GLuint programDepth;
+GLuint programShipDepth;
 
 Core::Shader_Loader shaderLoader;
 
@@ -126,11 +130,10 @@ glm::mat4 createPerspectiveMatrix()
 	return perspectiveMatrix;
 }
 
-void drawObjectDepth(Core::RenderContext& context, glm::mat4& viewProjection, glm::mat4& modelMatrix) {
+void drawObjectDepth(Core::RenderContext& context, glm::mat4& viewProjection, glm::mat4& modelMatrix, GLuint program) {
 	
-	glUniformMatrix4fv(glGetUniformLocation(programDepth, "viewProjectionMatrix"), 1, GL_FALSE, (float*)&viewProjection);
-	glUniformMatrix4fv(glGetUniformLocation(programDepth, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program, "perspectiveMatrix"), 1, GL_FALSE, (float*)&createPerspectiveMatrix());
+	glUniformMatrix4fv(glGetUniformLocation(program, "viewProjectionMatrix"), 1, GL_FALSE, (float*)&viewProjection);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 
 
 	/*	glm::mat4 lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, 1.0f, 30.0f);
@@ -173,6 +176,11 @@ void drawObjectPBR(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glUniformMatrix4fv(glGetUniformLocation(program, "LightVP"), 1, GL_FALSE, (float*)&lightVP);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthShipMap);
+	glm::mat4 lightShipVP = glm::ortho(-2.f, 2.f, -1.f, 1.f, 1.f, 30.0f) * glm::lookAt(spaceshipPos, spaceshipPos - spaceshipDir, glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(glGetUniformLocation(program, "LightShipVP"), 1, GL_FALSE, (float*)&lightShipVP);
 	
 	Core::DrawContext(context);
 
@@ -195,22 +203,24 @@ void renderShadowapSun() {
 	
 	lightVP = glm::ortho(-2.f, 2.f, -1.f, 1.f, 1.f, 30.0f) * glm::lookAt(sunPos, sunPos - sunDir, glm::vec3(0, 1, 0));
 
-	drawObjectDepth(sphereContext, lightVP, glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)));
+	drawObjectDepth(sphereContext, lightVP, glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)),
+		programDepth);
 	
 	drawObjectDepth(sphereContext, lightVP,
-		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)));
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
+		programDepth);
 
-	drawObjectDepth(models::bedContext,	lightVP ,glm::mat4());
-	drawObjectDepth(models::chairContext, lightVP, glm::mat4());
-	drawObjectDepth(models::deskContext, lightVP, glm::mat4());
-	drawObjectDepth(models::doorContext, lightVP, glm::mat4());
-	drawObjectDepth(models::drawerContext, lightVP, glm::mat4());
-	drawObjectDepth(models::marbleBustContext, lightVP, glm::mat4());
-	drawObjectDepth(models::materaceContext, lightVP, glm::mat4());
-	drawObjectDepth(models::pencilsContext, lightVP, glm::mat4());
-	drawObjectDepth(models::planeContext, lightVP, glm::mat4());
-	drawObjectDepth(models::roomContext, lightVP, glm::mat4());
-	drawObjectDepth(models::windowContext, lightVP, glm::mat4());
+	drawObjectDepth(models::bedContext,	lightVP ,glm::mat4(), programDepth);
+	drawObjectDepth(models::chairContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::deskContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::doorContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::drawerContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::marbleBustContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::materaceContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::pencilsContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::planeContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::roomContext, lightVP, glm::mat4(), programDepth);
+	drawObjectDepth(models::windowContext, lightVP, glm::mat4(), programDepth);
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
@@ -227,7 +237,67 @@ void renderShadowapSun() {
 	//	glm::vec3(0.3, 0.3, 0.5)
 	//	);
 	drawObjectDepth(shipContext, lightVP,
-		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f)));
+		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f)), programDepth);
+
+	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
+	spotlightConeDir = spaceshipDir;
+
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+void renderShadowapShip() {
+	//ustawianie przestrzeni rysowania 
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	//bindowanie FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapShipFBO);
+	//czyszczenie mapy głębokości 
+	glClear(GL_DEPTH_BUFFER_BIT);
+	//ustawianie programu
+	glUseProgram(programShipDepth);
+
+	float time = glfwGetTime();
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	//uzupelnij o renderowanie glebokosci do tekstury
+
+	lightVP = glm::ortho(-2.f, 2.f, -1.f, 1.f, 1.f, 30.0f) * glm::lookAt(spaceshipPos, spaceshipPos - spaceshipDir, glm::vec3(0, 1, 0));
+
+	drawObjectDepth(sphereContext, lightVP, glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)),
+		programShipDepth);
+
+	drawObjectDepth(sphereContext, lightVP,
+		glm::translate(pointlightPos) * glm::scale(glm::vec3(0.1)) * glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
+		programShipDepth);
+
+	drawObjectDepth(models::bedContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::chairContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::deskContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::doorContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::drawerContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::marbleBustContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::materaceContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::pencilsContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::planeContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::roomContext, lightVP, glm::mat4(), programShipDepth);
+	drawObjectDepth(models::windowContext, lightVP, glm::mat4(), programShipDepth);
+
+	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
+	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
+	glm::mat4 specshipCameraRotrationMatrix = glm::mat4({
+		spaceshipSide.x,spaceshipSide.y,spaceshipSide.z,0,
+		spaceshipUp.x,spaceshipUp.y,spaceshipUp.z ,0,
+		-spaceshipDir.x,-spaceshipDir.y,-spaceshipDir.z,0,
+		0.,0.,0.,1.,
+		});
+
+
+	//drawObjectColor(shipContext,
+	//	glm::translate(cameraPos + 1.5 * cameraDir + cameraUp * -0.5f) * inveseCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()),
+	//	glm::vec3(0.3, 0.3, 0.5)
+	//	);
+	drawObjectDepth(shipContext, lightVP,
+		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()) * glm::scale(glm::vec3(0.03f)), programShipDepth);
 
 	spotlightPos = spaceshipPos + 0.2 * spaceshipDir;
 	spotlightConeDir = spaceshipDir;
@@ -245,6 +315,7 @@ void renderScene(GLFWwindow* window)
 	float time = glfwGetTime();
 	updateDeltaTime(time);
 	renderShadowapSun();
+	renderShadowapShip();
 
 	//space lamp
 	glUseProgram(programSun);
@@ -304,7 +375,7 @@ void renderScene(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(programTest);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthShipMap);
 	Core::DrawContext(models::testContext);
 
 	glUseProgram(0);
@@ -342,6 +413,22 @@ void initDepthMap() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	//glDrawBuffer(GL_NONE);
+	//glReadBuffer(GL_NONE);
+
+
+	glGenFramebuffers(1, &depthMapShipFBO);
+
+	glGenTextures(1, &depthShipMap);
+	glBindTexture(GL_TEXTURE_2D, depthShipMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapShipFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthShipMap, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 }
@@ -354,6 +441,8 @@ void init(GLFWwindow* window)
 	programTest = shaderLoader.CreateProgram("shaders/test.vert", "shaders/test.frag");
 	programSun = shaderLoader.CreateProgram("shaders/shader_8_sun.vert", "shaders/shader_8_sun.frag");
 	programDepth = shaderLoader.CreateProgram("shaders/shadow_map.vert", "shaders/shadow_map.frag");
+	programShipDepth = shaderLoader.CreateProgram("shaders/shadow_ship_map.vert", "shaders/shadow_ship_map.frag");
+
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);

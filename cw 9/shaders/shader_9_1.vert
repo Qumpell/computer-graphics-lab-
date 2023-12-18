@@ -9,6 +9,7 @@ layout(location = 4) in vec3 vertexBitangent;
 uniform mat4 transformation;
 uniform mat4 modelMatrix;
 uniform mat4 LightVP;
+uniform mat4 LightShipVP;
 
 out vec3 vecNormal;
 out vec3 worldPos;
@@ -23,6 +24,7 @@ out vec3 lightDirTS;
 out vec3 spotlightDirTS;
 out vec3 sunDirTS;
 out vec4 sunSpacePos;
+out vec4 shipSpacePos;
 
 void main()
 {
@@ -43,4 +45,5 @@ void main()
 	sunDirTS = TBN*sunDir;
 
 	sunSpacePos = LightVP * modelMatrix * vec4(vertexPosition, 1);
+	shipSpacePos = LightShipVP * modelMatrix * vec4(vertexPosition, 1);
 }
