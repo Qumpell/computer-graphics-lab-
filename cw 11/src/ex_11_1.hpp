@@ -424,7 +424,7 @@ void initModels() {
 	Assimp::Importer importer;
 	//replace to get more buildings, unrecomdnded
 	//const aiScene* scene = importer.ReadFile("models/blade-runner-style-cityscapes.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
-	const aiScene* scene = importer.ReadFile("models/robot_arm.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+	const aiScene* scene = importer.ReadFile("models/robot_arm_color.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
 	 std::vector<Core::Material*> materialsVector;
 
